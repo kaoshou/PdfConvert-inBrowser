@@ -61,13 +61,12 @@
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .preview-img { 
-            width: 64px; 
-            height: 64px; 
-            object-fit: cover; 
-            border-radius: 12px; 
-            border: 1px solid #f1f5f9; 
-            background-color: #fff;
+        .preview-card-img { 
+            width: 100%; 
+            height: 160px; 
+            object-fit: contain; 
+            border-radius: 8px; 
+            background-color: #f1f5f9;
         }
 
         .btn-primary {
@@ -91,31 +90,35 @@
         }
         
         .drag-over {
-            border-top: 4px solid var(--primary) !important;
+            border-left: 6px solid var(--primary) !important;
         }
 
         .sortable-item {
             cursor: grab;
-            transition: transform 0.2s;
+            transition: all 0.2s;
         }
 
         .sortable-item:active {
             cursor: grabbing;
         }
+
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 8px; cursor: pointer; background: #e2e8f0; border-radius: 4px; }
+        input[type=range]::-webkit-slider-thumb { height: 20px; width: 20px; border-radius: 50%; background: var(--primary); cursor: pointer; -webkit-appearance: none; margin-top: -6px; }
     </style>
 </head>
 <body class="bg-[#f8fafc] min-h-screen flex flex-col text-slate-800">
 
     <!-- 導覽列 -->
     <nav class="glass-nav sticky top-0 z-40 w-full">
-        <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div class="max-w-6xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
             <div class="flex items-center gap-2 cursor-pointer" onclick="switchPage('main')">
                 <div class="bg-indigo-600 p-1.5 rounded-lg text-white">
                     <i data-lucide="zap" class="w-5 h-5"></i>
                 </div>
-                <span class="text-xl font-extrabold tracking-tight text-slate-800">PDF Converter</span>
+                <span class="text-lg md:text-xl font-extrabold tracking-tight text-slate-800">PDF Converter</span>
             </div>
-            <div class="flex gap-6 text-sm font-semibold text-slate-600">
+            <div class="flex gap-4 md:gap-6 text-base font-bold text-slate-600">
                 <button onclick="switchPage('main')" class="hover:text-indigo-600 transition-colors">轉換工具</button>
                 <button onclick="switchPage('about')" class="hover:text-indigo-600 transition-colors">關於本程式</button>
             </div>
@@ -123,82 +126,103 @@
     </nav>
 
     <!-- 主要內容區 -->
-    <main class="flex-grow">
-        <div id="page-main" class="max-w-6xl mx-auto px-6 py-12">
-            <header class="text-center mb-12">
-                <h1 class="text-4xl font-extrabold text-slate-900 mb-3 tracking-tight text-slate-900">PDF 轉換小工具</h1>
-                <p class="text-slate-500 max-w-2xl mx-auto">完全在瀏覽器中運行，不會將任何檔案上傳至伺服器，確保隱私保護。</p>
+    <main class="flex-grow px-4 md:px-6 py-8 md:py-12">
+        <div id="page-main" class="max-w-6xl mx-auto">
+            <header class="text-center mb-8 md:mb-12">
+                <h1 class="text-4xl md:text-5xl font-black text-slate-900 mb-4 tracking-tight">PDF 轉換小工具</h1>
+                <p class="text-slate-600 max-w-2xl mx-auto font-bold text-base md:text-lg px-2">完全在瀏覽器中運行，不將任何檔案上傳至伺服器，確保隱私保護。</p>
+                
+                <div class="mt-8 p-6 md:p-8 bg-indigo-50/50 rounded-3xl border border-indigo-100 max-w-3xl mx-auto text-sm md:text-base text-slate-500 leading-relaxed shadow-sm">
+                    <p class="mb-4 text-balance">
+                        本工具之轉換功能完全採用瀏覽器端技術實現，執行效能受限於客戶端環境資源。此外，匯入 PDF 進行轉換係採用平面化渲染（Render to Image）後再行封裝，若考量轉換效能或需進階功能（如 300+ DPI 解析度、PDF 加密等），建議採用以下本機端執行專案：
+                    </p>
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-6 mt-2">
+                        <a href="https://github.com/kaoshou/pdf-image-converter" target="_blank" class="flex items-center gap-2 text-indigo-600 font-black hover:underline">
+                            <i data-lucide="github" class="w-5 h-5"></i> PDF 轉圖片
+                        </a>
+                        <a href="https://github.com/kaoshou/image-pdf-converter" target="_blank" class="flex items-center gap-2 text-indigo-600 font-black hover:underline">
+                            <i data-lucide="github" class="w-4 h-4"></i> 圖片/PDF 合併轉 PDF
+                        </a>
+                    </div>
+                </div>
             </header>
 
             <!-- 功能頁籤 -->
-            <div class="flex justify-center mb-10">
-                <div class="bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 flex gap-1">
-                    <button onclick="switchTab('pdfToImg')" id="tab-pdfToImg" class="px-8 py-2.5 rounded-xl text-sm font-bold transition-all tab-active flex items-center gap-2">
-                        <i data-lucide="image" class="w-4 h-4"></i> PDF 轉圖片
+            <div class="flex justify-center mb-8 md:mb-12 overflow-x-auto pb-4 px-2">
+                <div class="bg-white p-2 rounded-3xl shadow-sm border border-slate-200 flex gap-1 whitespace-nowrap min-w-max">
+                    <button onclick="switchTab('pdfToImg')" id="tab-pdfToImg" class="px-8 md:px-10 py-4 rounded-2xl text-lg font-black transition-all tab-active flex items-center gap-2">
+                        <i data-lucide="image" class="w-6 h-6"></i> PDF 轉圖片
                     </button>
-                    <button onclick="switchTab('imgToPdf')" id="tab-imgToPdf" class="px-8 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-400 hover:text-slate-600 flex items-center gap-2">
-                        <i data-lucide="file-text" class="w-4 h-4"></i> 圖片轉 PDF
+                    <button onclick="switchTab('imgToPdf')" id="tab-imgToPdf" class="px-8 md:px-10 py-4 rounded-2xl text-lg font-black transition-all text-slate-500 hover:text-slate-600 flex items-center gap-2">
+                        <i data-lucide="file-plus-2" class="w-6 h-6"></i> 圖片轉 PDF
+                    </button>
+                    <button onclick="switchTab('pdfFlatten')" id="tab-pdfFlatten" class="px-8 md:px-10 py-4 rounded-2xl text-lg font-black transition-all text-slate-500 hover:text-slate-600 flex items-center gap-2">
+                        <i data-lucide="layers" class="w-6 h-6"></i> PDF 平面化
                     </button>
                 </div>
             </div>
 
-            <div id="statusMessage" class="hidden mb-6 p-4 rounded-xl text-sm text-center font-bold"></div>
+            <div id="statusMessage" class="hidden mb-6 p-4 rounded-xl text-base text-center font-black animate-pulse"></div>
 
             <!-- PDF 轉圖片 區塊 -->
             <section id="section-pdfToImg" class="block space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <div class="md:col-span-1">
-                        <div class="bg-white p-6 rounded-2xl border border-slate-200 card-shadow space-y-5">
-                            <h3 class="font-bold text-slate-800 flex items-center gap-2 border-b pb-3 text-sm">
-                                <i data-lucide="sliders" class="w-4 h-4 text-indigo-500"></i> 轉換參數設定
+                        <div class="bg-white p-8 rounded-3xl border border-slate-200 card-shadow space-y-6">
+                            <h3 class="font-black text-slate-800 flex items-center gap-2 border-b pb-4 text-lg">
+                                <i data-lucide="sliders" class="w-5 h-5 text-indigo-500"></i> 設定參數
                             </h3>
                             <div>
-                                <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">輸出格式</label>
-                                <select id="exportFormat" class="w-full mt-1.5 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700">
-                                    <option value="image/png">PNG</option>
-                                    <option value="image/jpeg">JPG</option>
+                                <label class="text-xs font-black text-slate-500 uppercase tracking-widest block mb-2">輸出格式</label>
+                                <select id="p2i-format" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-base outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 font-bold">
+                                    <option value="image/png">PNG (高品質無損)</option>
+                                    <option value="image/jpeg">JPG (節省空間)</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">解析度 (Scale)</label>
-                                <select id="exportScale" class="w-full mt-1.5 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700">
-                                    <option value="1">1x (普通解析度)</option>
-                                    <option value="2" selected>2x (高清 推薦)</option>
-                                    <option value="3">3x (超清晰度)</option>
+                                <label class="text-xs font-black text-slate-500 uppercase tracking-widest block mb-2">解析度 (DPI)</label>
+                                <select id="exportScale" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-base outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 font-bold">
+                                    <option value="5.56">400 DPI</option>
+                                    <option value="4.86">350 DPI</option>
+                                    <option value="4.17" selected>300 DPI</option>
+                                    <option value="3.47">250 DPI</option>
+                                    <option value="2.78">200 DPI</option>
+                                    <option value="1.5">108 DPI</option>
+                                    <option value="1">72 DPI</option>
                                 </select>
                             </div>
                         </div>
                     </div>
 
                     <div class="md:col-span-2 space-y-6">
-                        <div id="drop-pdfToImg" class="drop-zone bg-white rounded-3xl p-16 text-center cursor-pointer card-shadow" onclick="document.getElementById('input-pdfToImg').click()">
-                            <div class="flex flex-col items-center">
-                                <div class="bg-indigo-50 text-indigo-600 p-4 rounded-full mb-4">
-                                    <i data-lucide="upload-cloud" class="w-10 h-10"></i>
+                        <div id="drop-pdfToImg" class="drop-zone bg-white rounded-[2.5rem] p-12 md:p-20 text-center cursor-pointer card-shadow" onclick="document.getElementById('input-pdfToImg').click()">
+                            <div class="flex flex-col items-center font-black">
+                                <div class="bg-indigo-50 text-indigo-600 p-6 rounded-full mb-6">
+                                    <i data-lucide="upload-cloud" class="w-12 h-12"></i>
                                 </div>
-                                <p class="text-xl font-bold text-slate-800">上傳 PDF 檔案</p>
-                                <p class="text-sm text-slate-400 mt-2">點擊此處或直接拖放檔案至區域內</p>
+                                <p class="text-2xl text-slate-800">上傳 PDF 檔案</p>
+                                <p class="text-base text-slate-400 mt-3 font-medium">點擊或拖放檔案至此進行轉換</p>
                             </div>
                             <input type="file" id="input-pdfToImg" class="hidden" accept="application/pdf">
                         </div>
 
-                        <div id="p2i-results-container" class="hidden bg-white rounded-3xl p-8 shadow-sm border border-slate-200 space-y-8">
-                            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-100 pb-6">
+                        <div id="p2i-results-container" class="hidden bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200 space-y-8">
+                            <div class="flex flex-col sm:flex-row items-center justify-between gap-6 border-b border-slate-100 pb-8">
                                 <div class="flex items-center gap-4">
-                                    <div class="bg-green-100 text-green-600 p-3 rounded-2xl">
-                                        <i data-lucide="check-check" class="w-6 h-6"></i>
+                                    <div class="bg-green-100 text-green-600 p-4 rounded-2xl">
+                                        <i data-lucide="check-check" class="w-8 h-8"></i>
                                     </div>
                                     <div>
-                                        <h3 class="font-bold text-slate-900 text-lg">轉換任務完成</h3>
-                                        <p id="p2i-summary-text" class="text-sm text-slate-500 font-medium"></p>
+                                        <h3 class="font-black text-slate-900 text-xl">轉換任務完成</h3>
+                                        <p id="p2i-summary-text" class="text-base text-slate-500 font-bold"></p>
                                     </div>
                                 </div>
-                                <button onclick="downloadAllAsZip()" class="btn-primary text-white px-8 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-indigo-100 whitespace-nowrap">
-                                    <i data-lucide="archive" class="w-5 h-5"></i> 批次下載 ZIP
+                                <button onclick="downloadAllAsZip()" class="btn-primary w-full sm:w-auto text-white px-10 py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-2 shadow-lg shadow-indigo-100 whitespace-nowrap">
+                                    <i data-lucide="archive" class="w-6 h-6"></i> 批次下載 ZIP
                                 </button>
                             </div>
                             
-                            <div id="output-pdfToImg" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                            <div id="output-pdfToImg" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 text-slate-800">
                                 <!-- 預覽圖 -->
                             </div>
                         </div>
@@ -206,17 +230,17 @@
                 </div>
             </section>
 
-            <!-- 圖片/PDF 轉 PDF 區塊 -->
+            <!-- 圖片轉 PDF 區塊 -->
             <section id="section-imgToPdf" class="hidden space-y-6">
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
                     <div class="lg:col-span-1 space-y-6">
-                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 card-shadow space-y-5">
-                            <h3 class="font-bold text-slate-800 border-b pb-3 flex items-center gap-2 text-sm">
-                                <i data-lucide="settings-2" class="w-4 h-4 text-indigo-500"></i> PDF 輸出配置
+                        <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 card-shadow space-y-6">
+                            <h3 class="font-black text-slate-800 border-b pb-4 flex items-center gap-2 text-lg font-black">
+                                <i data-lucide="settings-2" class="w-5 h-5 text-indigo-500"></i> PDF 輸出配置
                             </h3>
                             <div>
-                                <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">頁面尺寸</label>
-                                <select id="pdfPageSize" onchange="toggleOrientation()" class="w-full mt-1.5 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700">
+                                <label class="text-xs font-black text-slate-500 uppercase tracking-widest block mb-2 font-black">頁面尺寸</label>
+                                <select id="pdfPageSize" onchange="toggleOrientation()" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-base outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 font-bold">
                                     <option value="original" selected>原始內容尺寸</option>
                                     <option value="a3">A3 規格</option>
                                     <option value="a4">A4 規格</option>
@@ -227,53 +251,133 @@
                                 </select>
                             </div>
                             <div id="orientationContainer" class="hidden">
-                                <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">紙張方向</label>
-                                <select id="pdfOrientation" class="w-full mt-1.5 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-2 font-black">紙張方向</label>
+                                <select id="pdfOrientation" class="w-full mt-1.5 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 font-bold">
                                     <option value="p">縱向 (Portrait)</option>
                                     <option value="l">橫向 (Landscape)</option>
                                 </select>
                             </div>
-                            <div class="pt-2 border-t space-y-4">
-                                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                    <i data-lucide="info" class="w-4 h-4"></i> 文件資訊
+                            <div>
+                                <label class="text-xs font-black text-slate-500 uppercase tracking-widest block mb-2 font-black">合成解析度 (DPI)</label>
+                                <select id="pdfRenderScale" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-base outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 font-bold">
+                                    <option value="5.56">400 DPI</option>
+                                    <option value="4.86">350 DPI</option>
+                                    <option value="4.17" selected>300 DPI</option>
+                                    <option value="3.47">250 DPI</option>
+                                    <option value="2.78">200 DPI</option>
+                                    <option value="1.5">108 DPI</option>
+                                    <option value="1">72 DPI</option>
+                                </select>
+                            </div>
+                            <div class="pt-4 border-t space-y-4 font-black">
+                                <h4 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                    <i data-lucide="info" class="w-4 h-4 text-indigo-500"></i> 文件資訊
                                 </h4>
                                 <div class="space-y-3">
-                                    <input type="text" id="pdfTitle" placeholder="標題 (Title)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700">
-                                    <input type="text" id="pdfAuthor" placeholder="作者 (Author)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700">
-                                    <input type="text" id="pdfSubject" placeholder="主題 (Subject)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700">
-                                    <input type="text" id="pdfKeywords" placeholder="關鍵字 (Keywords)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700">
+                                    <input type="text" id="pdfTitle" placeholder="標題 (Title)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 font-medium">
+                                    <input type="text" id="pdfAuthor" placeholder="作者 (Author)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 font-medium">
+                                    <input type="text" id="pdfSubject" placeholder="主題 (Subject)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 font-medium">
+                                    <input type="text" id="pdfKeywords" placeholder="關鍵字 (Keywords)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 font-medium">
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="lg:col-span-3 space-y-6">
-                        <div id="drop-imgToPdf" class="drop-zone bg-white rounded-3xl p-12 text-center cursor-pointer shadow-sm" onclick="document.getElementById('input-imgToPdf').click()">
-                            <div class="flex flex-col items-center text-slate-800">
-                                <div class="bg-indigo-50 text-indigo-600 p-4 rounded-full mb-4">
-                                    <i data-lucide="plus" class="w-10 h-10"></i>
+                        <div id="drop-imgToPdf" class="drop-zone bg-white rounded-[2.5rem] p-10 md:p-12 text-center cursor-pointer shadow-sm" onclick="document.getElementById('input-imgToPdf').click()">
+                            <div class="flex flex-col items-center text-slate-800 font-black">
+                                <div class="bg-indigo-50 text-indigo-600 p-4 rounded-full mb-6">
+                                    <i data-lucide="plus" class="w-12 h-12"></i>
                                 </div>
-                                <p class="text-xl font-bold">選擇圖片或 PDF 檔案</p>
-                                <p class="text-sm text-slate-400 mt-2">支援拖放多個檔案進行合併 (可直接拖曳調整順序)</p>
+                                <p class="text-2xl font-bold">選擇圖片或 PDF 檔案</p>
+                                <p class="text-sm md:text-base text-slate-400 mt-3 font-medium text-balance">支援拖放多個檔案 (可直接拖曳調整順序，展開 PDF 進行單頁排序)</p>
                             </div>
                             <input type="file" id="input-imgToPdf" class="hidden" accept="image/*,application/pdf" multiple>
                         </div>
 
                         <div id="mixed-controls-header" class="hidden flex justify-between items-center px-4">
-                            <h3 class="text-sm font-bold text-slate-500 flex items-center gap-2 tracking-wide uppercase"><i data-lucide="list-ordered" class="w-4 h-4 text-indigo-500"></i> 排程處理清單</h3>
-                            <button onclick="clearMixedItems()" class="text-xs font-bold text-red-500 hover:text-red-700 flex items-center gap-1.5 transition-all bg-red-50 px-3 py-1.5 rounded-lg text-white">
-                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 清空全部
+                            <h3 class="text-base font-black text-slate-500 flex items-center gap-2 tracking-wide uppercase font-black"><i data-lucide="list-ordered" class="w-5 h-5 text-indigo-500"></i> 待處理文件</h3>
+                            <button onclick="clearMixedItems()" class="text-sm font-black text-red-500 hover:text-red-700 flex items-center gap-2 transition-all bg-red-50 px-4 py-2 rounded-2xl">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i> 清空全部
                             </button>
                         </div>
 
-                        <div id="mixed-list-preview" class="space-y-4">
-                            <!-- 預覽清單 -->
+                        <div id="mixed-list-preview" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-1">
+                            <!-- 預覽清單卡片 -->
                         </div>
 
-                        <div id="action-imgToPdf" class="hidden flex flex-col items-center gap-6 bg-white p-8 rounded-3xl border border-slate-200 shadow-xl">
-                            <div id="totalPageSummary" class="text-base font-bold text-slate-700 bg-slate-50 px-6 py-2 rounded-full border border-slate-100"></div>
-                            <button onclick="convertMixedToPdf()" class="btn-primary w-full max-w-md text-white py-5 rounded-2xl font-black text-xl shadow-xl shadow-indigo-100 flex items-center justify-center gap-3 active:scale-95 transition-all">
-                                <i data-lucide="check-circle" class="w-7 h-7"></i> 合成並下載 PDF
+                        <div id="action-imgToPdf" class="hidden flex flex-col items-center gap-8 bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-xl text-slate-800 font-black">
+                            <div id="totalPageSummary" class="text-sm md:text-base font-bold bg-slate-50 px-8 py-3 rounded-full border border-slate-100 font-black"></div>
+                            <button onclick="convertMixedToPdf()" class="btn-primary w-full max-w-lg text-white py-5 md:py-6 rounded-3xl font-black text-xl md:text-2xl shadow-xl shadow-indigo-100 flex items-center justify-center gap-4 active:scale-95 transition-all">
+                                <i data-lucide="file-check" class="w-8 h-8"></i> 合成並下載 PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PDF 平面化 區塊 -->
+            <section id="section-pdfFlatten" class="hidden space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="md:col-span-1 space-y-6">
+                        <div class="bg-white p-8 rounded-3xl border border-slate-200 card-shadow space-y-6 font-black">
+                            <h3 class="font-black text-slate-800 flex items-center gap-2 border-b pb-4 text-lg font-black">
+                                <i data-lucide="sliders-horizontal" class="w-5 h-5 text-indigo-500"></i> 品質設定
+                            </h3>
+                            <div class="space-y-6">
+                                <div class="flex justify-between items-center">
+                                    <label class="text-xs font-bold text-slate-500 uppercase tracking-widest font-black">轉換品質</label>
+                                    <span id="qualityValue" class="text-indigo-600 font-bold text-sm font-black">75%</span>
+                                </div>
+                                <input type="range" id="compressQuality" min="0.1" max="1.0" step="0.05" value="0.75" 
+                                       oninput="document.getElementById('qualityValue').textContent = Math.round(this.value * 100) + '%'">
+                            </div>
+                            <div>
+                                <label class="text-xs font-black text-slate-500 uppercase tracking-widest block mb-2 font-black">輸出解析度 (DPI)</label>
+                                <select id="compressScale" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-base outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 font-bold">
+                                    <option value="5.56">400 DPI</option>
+                                    <option value="4.86">350 DPI</option>
+                                    <option value="4.17" selected>300 DPI</option>
+                                    <option value="3.47">250 DPI</option>
+                                    <option value="2.78">200 DPI</option>
+                                    <option value="1.5">108 DPI</option>
+                                    <option value="1">72 DPI</option>
+                                </select>
+                            </div>
+                            <div class="pt-4 border-t space-y-4 text-slate-800 font-medium">
+                                <h4 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                    <i data-lucide="info" class="w-5 h-5 text-indigo-500"></i> 文件資訊
+                                </h4>
+                                <div class="space-y-3">
+                                    <input type="text" id="flatTitle" placeholder="標題 (Title)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700">
+                                    <input type="text" id="flatAuthor" placeholder="作者 (Author)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700">
+                                    <input type="text" id="flatSubject" placeholder="主題 (Subject)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700">
+                                    <input type="text" id="flatKeywords" placeholder="關鍵字 (Keywords)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-2 space-y-6">
+                        <div id="drop-pdfFlatten" class="drop-zone bg-white rounded-[2.5rem] p-12 md:p-20 text-center cursor-pointer card-shadow" onclick="document.getElementById('input-pdfFlatten').click()">
+                            <div class="flex flex-col items-center font-black">
+                                <div class="bg-indigo-50 text-indigo-600 p-4 rounded-full mb-6">
+                                    <i data-lucide="layers" class="w-12 h-12"></i>
+                                </div>
+                                <p class="text-2xl text-slate-800">選擇 PDF 進行平面化</p>
+                                <p class="text-sm md:text-base text-slate-400 mt-3 font-medium">將所有內容轉為影像層，移除互動欄位並保護內容</p>
+                            </div>
+                            <input type="file" id="input-pdfFlatten" class="hidden" accept="application/pdf">
+                        </div>
+
+                        <div id="compressResult" class="hidden bg-white p-8 md:p-10 rounded-[2.5rem] border border-slate-100 shadow-xl text-center space-y-8">
+                            <div class="flex items-center justify-center gap-4 text-green-600 font-black">
+                                <i data-lucide="check-circle-2" class="w-10 h-10"></i>
+                                <h3 class="text-2xl">處理完成！</h3>
+                            </div>
+                            <p class="text-slate-600 text-lg font-medium" id="compressStats"></p>
+                            <button id="btnDownloadCompressed" class="btn-primary w-full sm:w-auto text-white px-12 py-5 rounded-3xl font-black text-xl shadow-lg shadow-indigo-100 transition-all flex items-center justify-center gap-3 mx-auto active:scale-95">
+                                <i data-lucide="download" class="w-6 h-6"></i> 下載平面化 PDF
                             </button>
                         </div>
                     </div>
@@ -282,101 +386,91 @@
         </div>
 
         <!-- 關於頁面 -->
-        <div id="page-about" class="hidden max-w-3xl mx-auto px-6 py-20">
-            <div class="bg-white rounded-3xl p-10 card-shadow border border-slate-100 text-slate-700">
-                <h2 class="text-3xl font-black text-slate-900 mb-8 flex items-center gap-3">
-                    <i data-lucide="info" class="w-8 h-8 text-indigo-600"></i> 關於本程式
+        <div id="page-about" class="hidden max-w-4xl mx-auto py-12 md:py-20 text-slate-800 font-black">
+            <div class="bg-white rounded-[2.5rem] p-8 md:p-12 card-shadow border border-slate-100 text-slate-700 font-black">
+                <h2 class="text-3xl md:text-4xl font-black text-slate-900 mb-10 flex items-center gap-4 text-center sm:text-left font-black">
+                    <i data-lucide="info" class="w-10 h-10 text-indigo-600"></i> 關於本程式
                 </h2>
                 
-                <div class="space-y-8 leading-relaxed">
+                <div class="space-y-12 leading-relaxed text-slate-800">
                     <section>
-                        <h3 class="text-lg font-bold text-slate-800 mb-3 border-l-4 border-indigo-500 pl-4">開發人員資訊</h3>
-                        <p class="mb-1"><strong>開發人員：</strong> 鄭郁翰 (Yu-Han Cheng)</p>
-                        <p><strong>Email：</strong> <a href="mailto:kaoshou@gmail.com" class="text-indigo-600 underline">kaoshou@gmail.com</a></p>
-                        <p><strong>程式原始碼：</strong> <a href="https://github.com/kaoshou/PdfConvert-inBrowser" class="text-indigo-600 underline" target="_blank">https://github.com/kaoshou/PdfConvert-inBrowser</a></p>
+                        <h3 class="text-xl font-black mb-4 border-l-6 border-indigo-500 pl-5 text-slate-800 font-black">開發人員資訊</h3>
+                        <div class="space-y-2 text-base md:text-lg font-bold">
+                            <p><strong>開發人員：</strong> 鄭郁翰 (Yu-Han Cheng)</p>
+                            <p><strong>Email：</strong> <a href="mailto:kaoshou@gmail.com" class="text-indigo-600 underline">kaoshou@gmail.com</a></p>
+                            <p><strong>程式原始碼：</strong> <a href="https://github.com/kaoshou/PdfConvert-inBrowser" class="text-indigo-600 underline" target="_blank">View on GitHub</a></p>
+                        </div>
                     </section>
 
                     <section>
-                        <h3 class="text-lg font-bold text-slate-800 mb-3 border-l-4 border-indigo-500 pl-4">程式開發動機</h3>
-                        <p>本工具旨在提供一個安全且高效的 PDF 轉換解決方案。與常見的雲端服務不同，本程式採用 <strong>Client-side Processing (客戶端處理)</strong> 技術，您的私人文件絕不會上傳至任何遠端伺服器，所有運算都在您的本地瀏覽器中完成。</p>
+                        <h3 class="text-xl font-black mb-4 border-l-6 border-indigo-500 pl-5 text-slate-800 font-black">程式開發動機</h3>
+                        <p class="text-base md:text-lg font-bold text-slate-600">本工具採用 <strong>Client-side Processing (客戶端處理)</strong> 技術。您的私人文件絕不會上傳至遠端伺服器，所有運算都在您的本地瀏覽器中完成，確保 100% 的資訊隱私安全。</p>
                     </section>
 
                     <section>
-                        <h3 class="text-lg font-bold text-slate-800 mb-3 border-l-4 border-indigo-500 pl-4">開放原始碼資訊</h3>
-                        <p class="mb-4 text-sm">本專案使用了多個開源套件來提供強大功能，感謝開源社群的貢獻：</p>
-                        <ul class="space-y-4">
-                            <li class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                <div class="font-bold text-slate-800 flex justify-between">
+                        <h3 class="text-xl font-black mb-6 border-l-6 border-indigo-500 pl-5 text-slate-800 font-black">開放原始碼資訊</h3>
+                        <p class="mb-6 text-base md:text-lg font-bold text-slate-600 font-medium">本專案使用了多個開源套件，感謝全球開發社群的貢獻：</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                                <div class="font-black text-slate-800 flex justify-between items-center mb-2 font-black">
                                     <span>PDF.js</span>
-                                    <a href="https://github.com/mozilla/pdf.js" target="_blank" class="text-indigo-600 text-xs hover:underline flex items-center gap-1">專案網址 <i data-lucide="external-link" class="w-3 h-3"></i></a>
+                                    <a href="https://github.com/mozilla/pdf.js" target="_blank" class="text-indigo-600 hover:underline"><i data-lucide="external-link" class="w-4 h-4"></i></a>
                                 </div>
-                                <div class="text-xs text-slate-400 mt-1 mb-2">Developed by Mozilla - Apache License 2.0</div>
-                                <div class="text-sm">負責 PDF 內容解析與 Canvas 高畫質渲染。</div>
-                            </li>
-                            <li class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                <div class="font-bold text-slate-800 flex justify-between">
+                                <p class="text-sm font-medium text-slate-500">Mozilla - Apache License 2.0</p>
+                                <p class="text-xs mt-2 text-slate-400 font-bold">負責解析 PDF 與 Canvas 高解析渲染。</p>
+                            </div>
+                            <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                                <div class="font-black text-slate-800 flex justify-between items-center mb-2 font-black">
                                     <span>jsPDF</span>
-                                    <a href="https://github.com/parallax/jsPDF" target="_blank" class="text-indigo-600 text-xs hover:underline flex items-center gap-1">專案網址 <i data-lucide="external-link" class="w-3 h-3"></i></a>
+                                    <a href="https://github.com/parallax/jsPDF" target="_blank" class="text-indigo-600 hover:underline"><i data-lucide="external-link" class="w-4 h-4"></i></a>
                                 </div>
-                                <div class="text-xs text-slate-400 mt-1 mb-2">Developed by Parallax - MIT License</div>
-                                <div class="text-sm">核心 PDF 文件生成與圖片嵌入邏輯。</div>
-                            </li>
-                            <li class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                <div class="font-bold text-slate-800 flex justify-between">
+                                <p class="text-sm font-medium text-slate-500">Parallax - MIT License</p>
+                                <p class="text-xs mt-2 text-slate-400 font-bold">核心文件生成與圖片封裝邏輯。</p>
+                            </div>
+                            <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                                <div class="font-black text-slate-800 flex justify-between items-center mb-2 font-black">
                                     <span>JSZip</span>
-                                    <a href="https://github.com/Stuk/jszip" target="_blank" class="text-indigo-600 text-xs hover:underline flex items-center gap-1">專案網址 <i data-lucide="external-link" class="w-3 h-3"></i></a>
+                                    <a href="https://github.com/Stuk/jszip" target="_blank" class="text-indigo-600 hover:underline"><i data-lucide="external-link" class="w-4 h-4"></i></a>
                                 </div>
-                                <div class="text-xs text-slate-400 mt-1 mb-2">Developed by Stuk - MIT / GPLv3 License</div>
-                                <div class="text-sm">提供強大的瀏覽器端檔案壓縮技術，用於批次下載。</div>
-                            </li>
-                            <li class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                <div class="font-bold text-slate-800 flex justify-between">
+                                <p class="text-sm font-medium text-slate-500">Stuk - MIT License</p>
+                                <p class="text-xs mt-2 text-slate-400 font-bold">提供瀏覽器端檔案壓縮與打包。</p>
+                            </div>
+                            <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                                <div class="font-black text-slate-800 flex justify-between items-center mb-2 font-black">
                                     <span>Tailwind CSS</span>
-                                    <a href="https://tailwindcss.com/" target="_blank" class="text-indigo-600 text-xs hover:underline flex items-center gap-1">專案網址 <i data-lucide="external-link" class="w-3 h-3"></i></a>
+                                    <a href="https://tailwindcss.com/" target="_blank" class="text-indigo-600 hover:underline"><i data-lucide="external-link" class="w-4 h-4"></i></a>
                                 </div>
-                                <div class="text-xs text-slate-400 mt-1 mb-2">MIT License</div>
-                                <div class="text-sm">現代化 CSS 框架，用於建構響應式介面。</div>
-                            </li>
-                            <li class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                <div class="font-bold text-slate-800 flex justify-between">
-                                    <span>Lucide Icons</span>
-                                    <a href="https://lucide.dev/" target="_blank" class="text-indigo-600 text-xs hover:underline flex items-center gap-1">專案網址 <i data-lucide="external-link" class="w-3 h-3"></i></a>
-                                </div>
-                                <div class="text-xs text-slate-400 mt-1 mb-2">ISC License</div>
-                                <div class="text-sm">精美向量圖示庫。</div>
-                            </li>
-                        </ul>
+                                <p class="text-sm font-medium text-slate-500">MIT License</p>
+                                <p class="text-xs mt-2 text-slate-400 font-bold">建構響應式介面設計系統。</p>
+                            </div>
+                        </div>
                     </section>
-                </div>
-
-                <div class="mt-12 text-center">
-                    <button onclick="switchPage('main')" class="text-indigo-600 font-bold flex items-center justify-center gap-2 mx-auto hover:gap-4 transition-all">
-                        <i data-lucide="arrow-left" class="w-5 h-5"></i> 回到轉換工具
-                    </button>
                 </div>
             </div>
         </div>
     </main>
 
     <!-- 頁尾 -->
-    <footer class="bg-white border-t border-slate-200 py-10 mt-auto">
-        <div class="max-w-6xl mx-auto px-6 text-center">
-            <div class="flex flex-col items-center gap-4">                
-                <p class="text-slate-400 text-sm">
+    <footer class="bg-white border-t border-slate-200 py-12 mt-auto px-4 font-black">
+        <div class="max-w-6xl mx-auto text-center">
+            <div class="flex flex-col items-center gap-6">                
+                <p class="text-slate-400 text-sm md:text-base font-black tracking-widest uppercase">
                     &copy; 2025 Yu-Han Cheng. All Rights Reserved.
                 </p>
-                <div class="flex gap-4 text-xs font-bold text-slate-300">
-                    <button onclick="switchPage('about')" class="hover:text-indigo-400 transition-colors">關於本程式</button>
+                <div class="flex gap-8 text-xs font-black text-slate-300">
+                    <button onclick="switchPage('about')" class="hover:text-indigo-400 transition-colors uppercase tracking-widest font-black">關於本程式</button>
+                    <span class="cursor-default">v3.1.2 Stable</span>
                 </div>
             </div>
         </div>
     </footer>
 
-    <!-- 載入中遮罩 -->
-    <div id="loadingOverlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden flex items-center justify-center z-[999]">
-        <div class="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center">
-            <div class="loader mb-4 scale-125"></div>
-            <p class="text-slate-800 font-bold" id="loadingText">處理中...</p>
+    <!-- 全域載入遮罩 -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden flex items-center justify-center z-[999] px-4 font-black">
+        <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl flex flex-col items-center text-center max-w-sm w-full font-black">
+            <div class="loader mb-6 scale-150"></div>
+            <p class="text-slate-800 font-black text-xl font-black" id="loadingText">處理中...</p>
+            <p class="text-slate-400 text-xs mt-4 font-bold tracking-tight">高解析度渲染耗時較久，請勿關閉分頁</p>
         </div>
     </div>
 
@@ -389,35 +483,29 @@
         let mixedItems = [];
         let p2iGeneratedImages = [];
         let draggedItemIndex = null;
+        let compressedBlob = null;
 
-        // 初始化 Lucide 圖示
         lucide.createIcons();
 
         function switchPage(page) {
             const main = document.getElementById('page-main');
             const about = document.getElementById('page-about');
-            if (page === 'main') {
-                main.classList.remove('hidden');
-                about.classList.add('hidden');
-            } else {
-                main.classList.add('hidden');
-                about.classList.remove('hidden');
-            }
+            main.classList.toggle('hidden', page !== 'main');
+            about.classList.toggle('hidden', page === 'main');
             window.scrollTo(0, 0);
         }
 
         function switchTab(tab) {
-            ['pdfToImg', 'imgToPdf'].forEach(t => {
+            ['pdfToImg', 'imgToPdf', 'pdfFlatten'].forEach(t => {
                 const btn = document.getElementById(`tab-${t}`);
                 const section = document.getElementById(`section-${t}`);
                 section.classList.toggle('hidden', t !== tab);
-                
                 if (t === tab) {
                     btn.classList.add('tab-active');
-                    btn.classList.remove('text-slate-400');
+                    btn.classList.remove('text-slate-500');
                 } else {
                     btn.classList.remove('tab-active');
-                    btn.classList.add('text-slate-400');
+                    btn.classList.add('text-slate-500');
                 }
             });
             clearStatus();
@@ -425,14 +513,13 @@
 
         function toggleOrientation() {
             const size = document.getElementById('pdfPageSize').value;
-            const container = document.getElementById('orientationContainer');
-            container.classList.toggle('hidden', size === 'original');
+            document.getElementById('orientationContainer').classList.toggle('hidden', size === 'original');
         }
 
         function showStatus(msg, type = 'info') {
             const el = document.getElementById('statusMessage');
             el.textContent = msg;
-            el.className = `mb-6 p-4 rounded-xl text-sm text-center ${type === 'error' ? 'bg-red-100 text-red-700 font-bold' : 'bg-indigo-100 text-indigo-700 font-bold'}`;
+            el.className = `mb-6 p-4 rounded-xl text-base text-center font-black ${type === 'error' ? 'bg-red-100 text-red-700' : 'bg-indigo-100 text-indigo-700'}`;
             el.classList.remove('hidden');
             setTimeout(() => el.classList.add('hidden'), 5000);
         }
@@ -449,260 +536,190 @@
         document.getElementById('input-pdfToImg').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            
-            showLoading(true, '正在解析 PDF...');
-            const format = document.getElementById('exportFormat').value;
+            showLoading(true, '解析 PDF...');
+            const format = document.getElementById('p2i-format').value;
             const scale = parseFloat(document.getElementById('exportScale').value);
             const output = document.getElementById('output-pdfToImg');
             const resultContainer = document.getElementById('p2i-results-container');
             const summaryText = document.getElementById('p2i-summary-text');
-            
             output.innerHTML = '';
             p2iGeneratedImages = [];
 
             try {
                 const arrayBuffer = await file.arrayBuffer();
+                // 使用 .slice(0) 確保資料在多線程渲染中不遺失
                 const pdf = await pdfjsLib.getDocument({ data: arrayBuffer.slice(0) }).promise;
-                
                 for (let i = 1; i <= pdf.numPages; i++) {
-                    showLoading(true, `正在轉換: ${i} / ${pdf.numPages}`);
+                    showLoading(true, `高解析度轉換中: ${i} / ${pdf.numPages}`);
                     const page = await pdf.getPage(i);
                     const viewport = page.getViewport({ scale: scale });
                     const canvas = document.createElement('canvas');
                     const context = canvas.getContext('2d');
-                    canvas.width = viewport.width; 
-                    canvas.height = viewport.height;
-                    
+                    canvas.width = viewport.width; canvas.height = viewport.height;
                     await page.render({ canvasContext: context, viewport: viewport }).promise;
-                    
                     const imgData = canvas.toDataURL(format, 0.9);
                     const ext = format === 'image/jpeg' ? 'jpg' : 'png';
                     p2iGeneratedImages.push({ data: imgData, name: `page_${i}.${ext}` });
 
                     const div = document.createElement('div');
-                    div.className = "bg-white p-2 rounded-xl shadow-sm border border-slate-100 relative group overflow-hidden transition-all hover:border-indigo-200";
+                    div.className = "bg-white p-3 rounded-[1.5rem] shadow-sm border border-slate-100 relative group overflow-hidden transition-all hover:border-indigo-200";
                     div.innerHTML = `
-                        <img src="${imgData}" class="w-full h-auto rounded-lg">
+                        <img src="${imgData}" class="w-full h-auto rounded-xl">
                         <div class="absolute inset-0 bg-indigo-900/60 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
-                            <button onclick="downloadOne('${imgData}', 'p${i}')" class="bg-white p-2 rounded-full shadow-lg transform hover:scale-110 active:scale-90 transition-all"><i data-lucide="download" class="w-4 h-4 text-indigo-600"></i></button>
+                            <button onclick="downloadOneP2I('${imgData}', 'p${i}')" class="bg-white p-3 rounded-full shadow-lg transform hover:scale-110 active:scale-90 transition-all"><i data-lucide="download" class="w-5 h-5 text-indigo-600"></i></button>
                         </div>
-                        <div class="mt-2 text-[10px] text-center font-bold text-slate-400 uppercase tracking-widest">頁次 ${i}</div>
+                        <div class="mt-3 text-xs text-center font-bold text-slate-400 uppercase tracking-widest font-black">PAGE ${i}</div>
                     `;
                     output.appendChild(div);
                 }
-                summaryText.textContent = `來源檔案：${file.name} (共 ${pdf.numPages} 頁)`;
+                summaryText.textContent = `來源：${file.name} (${pdf.numPages} 頁)`;
                 resultContainer.classList.remove('hidden');
                 lucide.createIcons();
-                window.scrollTo({ top: resultContainer.offsetTop - 100, behavior: 'smooth' });
             } catch (err) { 
                 console.error(err);
                 showStatus('解析失敗：' + err.message, 'error'); 
-            } finally { 
-                showLoading(false); 
-                e.target.value = ''; 
             }
+            finally { showLoading(false); e.target.value = ''; }
         });
 
-        function downloadOne(data, name) {
-            const format = document.getElementById('exportFormat').value;
+        function downloadOneP2I(data, name) {
+            const format = document.getElementById('p2i-format').value;
             const ext = format === 'image/jpeg' ? 'jpg' : 'png';
-            const a = document.createElement('a'); 
-            a.href = data; 
-            a.download = `${name}.${ext}`; 
-            a.click();
+            const a = document.createElement('a'); a.href = data; a.download = `${name}.${ext}`; a.click();
         }
 
         async function downloadAllAsZip() {
             if (!p2iGeneratedImages.length) return;
-            showLoading(true, '正在打包壓縮檔案...');
+            showLoading(true, '打包 ZIP...');
             try {
                 const zip = new JSZip();
                 p2iGeneratedImages.forEach(img => zip.file(img.name, img.data.split(',')[1], { base64: true }));
                 const content = await zip.generateAsync({ type: 'blob' });
-                const a = document.createElement('a'); 
-                a.href = URL.createObjectURL(content); 
-                a.download = 'pdf_images_package.zip'; 
-                a.click();
-            } catch (err) {
-                showStatus('ZIP 打包失敗', 'error');
-            } finally {
-                showLoading(false);
+                const a = document.createElement('a'); a.href = URL.createObjectURL(content); a.download = 'pdf_package.zip'; a.click();
+            } catch (e) {
+                showStatus('打包失敗', 'error');
             }
+            showLoading(false);
         }
 
-        // --- 圖片/PDF 轉 PDF 功能 ---
+        // --- 圖片轉 PDF 功能 ---
         document.getElementById('input-imgToPdf').addEventListener('change', async (e) => {
             const files = Array.from(e.target.files);
             if (!files.length) return;
-            showLoading(true, '正在讀取選取檔案...');
-            
-            try {
-                for (const file of files) {
-                    if (file.type === 'application/pdf') {
+            showLoading(true, '讀取中...');
+            for (const file of files) {
+                if (file.type === 'application/pdf') {
+                    try {
                         const buffer = await file.arrayBuffer();
                         const pdf = await pdfjsLib.getDocument({ data: buffer.slice(0) }).promise;
                         const page = await pdf.getPage(1);
-                        const viewport = page.getViewport({ scale: 0.3 });
+                        const vp = page.getViewport({ scale: 0.5 });
                         const canvas = document.createElement('canvas');
-                        const context = canvas.getContext('2d');
-                        canvas.width = viewport.width; 
-                        canvas.height = viewport.height;
-                        await page.render({ canvasContext: context, viewport: viewport }).promise;
-                        
-                        mixedItems.push({ 
-                            id: Math.random().toString(36).substr(2, 9), 
-                            type: 'pdf', 
-                            name: file.name, 
-                            pages: pdf.numPages, 
-                            data: buffer, 
-                            preview: canvas.toDataURL() 
-                        });
-                    } else if (file.type.startsWith('image/')) {
-                        const data = await new Promise(r => {
-                            const reader = new FileReader();
-                            reader.onload = re => r(re.target.result);
-                            reader.readAsDataURL(file);
-                        });
-                        mixedItems.push({ 
-                            id: Math.random().toString(36).substr(2, 9), 
-                            type: 'image', 
-                            name: file.name, 
-                            pages: 1, 
-                            data: data, 
-                            preview: data 
-                        });
+                        canvas.width = vp.width; canvas.height = vp.height;
+                        await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+                        mixedItems.push({ id: Math.random().toString(36).substr(2, 9), type: 'pdf', name: file.name, pages: pdf.numPages, data: buffer, preview: canvas.toDataURL() });
+                    } catch (err) {
+                        console.error(err);
                     }
+                } else if (file.type.startsWith('image/')) {
+                    const data = await new Promise(r => {
+                        const reader = new FileReader();
+                        reader.onload = re => r(re.target.result);
+                        reader.readAsDataURL(file);
+                    });
+                    mixedItems.push({ id: Math.random().toString(36).substr(2, 9), type: 'image', name: file.name, pages: 1, data: data, preview: data });
                 }
-                renderMixedList();
-            } catch (err) {
-                showStatus('檔案讀取失敗', 'error');
-            } finally {
-                showLoading(false);
-                e.target.value = '';
             }
+            renderMixedList();
+            showLoading(false);
+            e.target.value = '';
         });
 
-        // 渲染混合清單 (包含拖曳功能與展開按鈕)
         function renderMixedList() {
             const container = document.getElementById('mixed-list-preview');
             const summary = document.getElementById('totalPageSummary');
             const header = document.getElementById('mixed-controls-header');
             container.innerHTML = '';
-            
-            if (!mixedItems.length) { 
-                document.getElementById('action-imgToPdf').classList.add('hidden'); 
-                header.classList.add('hidden');
-                return; 
-            }
-            
+            if (!mixedItems.length) { document.getElementById('action-imgToPdf').classList.add('hidden'); header.classList.add('hidden'); return; }
             document.getElementById('action-imgToPdf').classList.remove('hidden');
             header.classList.remove('hidden');
-            
             let currentP = 1;
             mixedItems.forEach((item, idx) => {
                 const range = item.pages > 1 ? `P.${currentP} ~ ${currentP + item.pages - 1}` : `P.${currentP}`;
-                
                 const div = document.createElement('div');
-                div.className = "sortable-item flex items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md group relative";
+                div.className = "sortable-item flex flex-col gap-3 bg-white p-4 rounded-[2rem] border border-slate-200 shadow-sm transition-all hover:shadow-md group relative";
                 div.draggable = true;
                 div.dataset.index = idx;
-
                 div.addEventListener('dragstart', handleDragStart);
                 div.addEventListener('dragover', handleDragOver);
                 div.addEventListener('dragleave', handleDragLeave);
                 div.addEventListener('drop', handleDrop);
                 div.addEventListener('dragend', handleDragEnd);
 
-                // 是否顯示展開按鈕
                 const expandBtn = (item.type === 'pdf' && item.pages > 1) 
-                    ? `<button onclick="expandPdf(${idx}); event.stopPropagation();" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors flex items-center gap-1">
-                        <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i> 展開頁面
-                       </button>` 
-                    : "";
+                    ? `<button onclick="expandPdf(${idx}); event.stopPropagation();" class="text-[10px] md:text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors font-black">展開 PDF 頁面</button>` : "";
 
                 div.innerHTML = `
-                    <div class="flex items-center gap-3 flex-grow min-w-0">
-                        <div class="text-slate-300 group-hover:text-indigo-400 cursor-move">
-                             <i data-lucide="grip-vertical" class="w-5 h-5"></i>
-                        </div>
-                        <img src="${item.preview}" class="preview-img">
+                    <div class="flex items-center gap-3 w-full">
+                        <div class="text-slate-300 group-hover:text-indigo-400 cursor-move"><i data-lucide="grip-vertical" class="w-5 h-5"></i></div>
                         <div class="flex-grow min-w-0">
-                            <p class="text-sm font-bold truncate text-slate-800">${item.name}</p>
-                            <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">順序：${range}</p>
+                            <p class="text-sm font-bold truncate text-slate-800 font-black">${item.name}</p>
+                            <p class="text-[10px] md:text-xs font-bold text-indigo-500 uppercase tracking-tight font-black">預計位置：${range}</p>
                         </div>
+                        <button onclick="removeItem(${idx}); event.stopPropagation();" class="text-red-400 hover:bg-red-50 p-2 rounded-xl transition-all"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
                     </div>
-                    <div class="flex items-center gap-3">
-                        ${expandBtn}
-                        <div class="flex flex-col gap-1 text-slate-300 group-hover:text-slate-400">
-                            <button title="向上移動" onclick="moveItem(${idx}, -1); event.stopPropagation();" class="p-1 hover:bg-slate-100 rounded-lg ${idx === 0 ? 'invisible' : ''}"><i data-lucide="chevron-up" class="w-4 h-4"></i></button>
-                            <button title="向下移動" onclick="moveItem(${idx}, 1); event.stopPropagation();" class="p-1 hover:bg-slate-100 rounded-lg ${idx === mixedItems.length - 1 ? 'invisible' : ''}"><i data-lucide="chevron-down" class="w-4 h-4"></i></button>
+                    <div class="flex gap-4 items-end">
+                        <img src="${item.preview}" class="preview-card-img text-slate-800 font-black">
+                        <div class="flex flex-col gap-2 shrink-0">
+                            ${expandBtn}
+                            <div class="flex gap-1">
+                                <button onclick="moveItem(${idx}, -1); event.stopPropagation();" class="${idx === 0 ? 'invisible' : ''} p-2 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"><i data-lucide="chevron-up" class="w-4 h-4 text-slate-600"></i></button>
+                                <button onclick="moveItem(${idx}, 1); event.stopPropagation();" class="${idx === mixedItems.length - 1 ? 'invisible' : ''} p-2 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"><i data-lucide="chevron-down" class="w-4 h-4 text-slate-600"></i></button>
+                            </div>
                         </div>
-                        <button title="移除" onclick="removeItem(${idx}); event.stopPropagation();" class="text-red-500 hover:bg-red-50 hover:text-red-600 p-2.5 rounded-xl transition-all"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
                     </div>
                 `;
                 container.appendChild(div);
                 currentP += item.pages;
             });
-            summary.textContent = `待處理：${mixedItems.length} 個檔案 • 總計：${currentP - 1} 頁`;
+            summary.textContent = `待處理：${mixedItems.length} 個項目 • 總計：${currentP - 1} 頁`;
             lucide.createIcons();
         }
 
-        // --- 展開 PDF 功能 ---
+        // --- 修復展開功能解析度問題 ---
         async function expandPdf(idx) {
             const item = mixedItems[idx];
-            if (item.type !== 'pdf' || item.pages <= 1) return;
-
-            showLoading(true, '正在展開 PDF 頁面...');
-            
+            showLoading(true, '展開中...');
             try {
+                // 使用目前 UI 上設定的 DPI
+                const targetScale = parseFloat(document.getElementById('pdfRenderScale').value);
                 const pdf = await pdfjsLib.getDocument({ data: item.data.slice(0) }).promise;
                 const newItems = [];
-                
                 for (let i = 1; i <= pdf.numPages; i++) {
-                    showLoading(true, `正在解析第 ${i} 頁...`);
+                    showLoading(true, `高清解析: ${i} / ${pdf.numPages}`);
                     const page = await pdf.getPage(i);
-                    const viewport = page.getViewport({ scale: 1.5 }); // 高清預覽
+                    const vp = page.getViewport({ scale: targetScale });
                     const canvas = document.createElement('canvas');
                     const context = canvas.getContext('2d');
-                    canvas.width = viewport.width; 
-                    canvas.height = viewport.height;
-                    await page.render({ canvasContext: context, viewport: viewport }).promise;
-                    
-                    const imgData = canvas.toDataURL('image/jpeg', 0.85);
-                    
-                    newItems.push({
-                        id: Math.random().toString(36).substr(2, 9),
-                        type: 'image', // 展開後視為獨立圖片處理
-                        name: `${item.name} - P.${i}`,
-                        pages: 1,
-                        data: imgData,
-                        preview: imgData
-                    });
+                    canvas.width = vp.width; canvas.height = vp.height;
+                    await page.render({ canvasContext: context, viewport: vp }).promise;
+                    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+                    newItems.push({ id: Math.random().toString(36).substr(2,9), type: 'image', name: `${item.name} - P.${i}`, pages: 1, data: imgData, preview: imgData });
                 }
-
-                // 替換原本的項目
                 mixedItems.splice(idx, 1, ...newItems);
                 renderMixedList();
-                showStatus(`已將「${item.name}」展開為 ${pdf.numPages} 個獨立頁面`);
-            } catch (err) {
+            } catch (err) { 
                 console.error(err);
-                showStatus('展開 PDF 失敗', 'error');
-            } finally {
-                showLoading(false);
+                showStatus('展開失敗', 'error'); 
             }
+            finally { showLoading(false); }
         }
 
-        // --- 拖放邏輯 ---
-        function handleDragStart(e) {
-            draggedItemIndex = parseInt(this.dataset.index);
-            this.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-        }
+        function handleDragStart(e) { draggedItemIndex = parseInt(this.dataset.index); this.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; }
         function handleDragOver(e) { e.preventDefault(); this.classList.add('drag-over'); }
         function handleDragLeave() { this.classList.remove('drag-over'); }
         function handleDrop(e) {
-            e.preventDefault();
-            this.classList.remove('drag-over');
+            e.preventDefault(); this.classList.remove('drag-over');
             const targetIndex = parseInt(this.dataset.index);
             if (draggedItemIndex !== null && draggedItemIndex !== targetIndex) {
                 const itemToMove = mixedItems.splice(draggedItemIndex, 1)[0];
@@ -710,17 +727,13 @@
                 renderMixedList();
             }
         }
-        function handleDragEnd() {
-            this.classList.remove('dragging');
-            document.querySelectorAll('.sortable-item').forEach(item => item.classList.remove('drag-over'));
-            draggedItemIndex = null;
-        }
+        function handleDragEnd() { this.classList.remove('dragging'); document.querySelectorAll('.sortable-item').forEach(item => item.classList.remove('drag-over')); draggedItemIndex = null; }
 
         function removeItem(idx) { mixedItems.splice(idx, 1); renderMixedList(); }
         function moveItem(idx, dir) { 
-            const target = idx + dir;
-            if (target < 0 || target >= mixedItems.length) return;
-            [mixedItems[idx], mixedItems[target]] = [mixedItems[target], mixedItems[idx]]; 
+            const newIdx = idx + dir;
+            if (newIdx < 0 || newIdx >= mixedItems.length) return;
+            [mixedItems[idx], mixedItems[newIdx]] = [mixedItems[newIdx], mixedItems[idx]]; 
             renderMixedList(); 
         }
         function clearMixedItems() { mixedItems = []; renderMixedList(); }
@@ -729,136 +742,161 @@
         async function convertMixedToPdf() {
             if (!mixedItems.length) return;
             showLoading(true, '合成作業啟動中...');
-            
             const sizeMode = document.getElementById('pdfPageSize').value;
-            const orientationSetting = document.getElementById('pdfOrientation').value;
-
-            // 抓取建構函式
-            const jspdfObj = window.jspdf;
-            const jsPDF = jspdfObj ? jspdfObj.jsPDF : null;
-
-            if (!jsPDF) {
-                showStatus('合成失敗：無法載入 PDF 生成組件', 'error');
-                showLoading(false);
-                return;
-            }
+            const targetScale = parseFloat(document.getElementById('pdfRenderScale').value);
+            const jsPDF = window.jspdf ? window.jspdf.jsPDF : null;
+            if (!jsPDF) { showStatus('核心錯誤：找不到 PDF 生成組件', 'error'); showLoading(false); return; }
 
             try {
-                let doc = null;
-                let isFirst = true;
-
+                let doc = null; let isFirst = true;
                 for (const item of mixedItems) {
                     if (item.type === 'image') {
-                        const img = new Image();
-                        img.src = item.data;
-                        await new Promise((resolve, reject) => {
-                            img.onload = resolve;
-                            img.onerror = reject;
-                        });
-                        
-                        const imgW = img.naturalWidth;
-                        const imgH = img.naturalHeight;
+                        const img = new Image(); img.src = item.data;
+                        await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; });
+                        const imgW = img.naturalWidth; const imgH = img.naturalHeight;
                         let pdfW, pdfH, orient;
-
-                        if (sizeMode === 'original') {
-                            pdfW = imgW; pdfH = imgH;
-                            orient = pdfW > pdfH ? 'l' : 'p';
-                        } else {
-                            const tempDoc = new jsPDF({ unit: 'pt', format: sizeMode, orientation: orientationSetting });
-                            pdfW = tempDoc.internal.pageSize.getWidth();
-                            pdfH = tempDoc.internal.pageSize.getHeight();
-                            orient = orientationSetting;
+                        
+                        // 計算頁面點數大小
+                        if (sizeMode === 'original') { 
+                            // 如果是展開來的圖片，像素已經被 Scale 放大了，要縮回原始 Points
+                            // 檢查資料來源是否為展開產出的 0.92 JPEG
+                            const isScaled = item.data.startsWith('data:image/jpeg');
+                            pdfW = isScaled ? (imgW / targetScale) : imgW; 
+                            pdfH = isScaled ? (imgH / targetScale) : imgH;
+                            orient = pdfW > pdfH ? 'l' : 'p'; 
+                        } else { 
+                            const temp = new jsPDF({ unit: 'pt', format: sizeMode }); 
+                            pdfW = temp.internal.pageSize.getWidth(); 
+                            pdfH = temp.internal.pageSize.getHeight(); 
+                            orient = pdfW > pdfH ? 'l' : 'p'; 
                         }
-
-                        if (isFirst) {
-                            doc = new jsPDF({ unit: 'pt', format: sizeMode === 'original' ? [pdfW, pdfH] : sizeMode, orientation: orient });
-                            isFirst = false;
-                        } else {
-                            doc.addPage(sizeMode === 'original' ? [pdfW, pdfH] : sizeMode, orient);
+                        
+                        if (isFirst) { 
+                            doc = new jsPDF({ unit: 'pt', format: [pdfW, pdfH], orientation: orient }); 
+                            isFirst = false; 
+                        } else { 
+                            doc.addPage([pdfW, pdfH], orient); 
                         }
-
-                        if (sizeMode === 'original') {
-                            doc.addImage(item.data, 'PNG', 0, 0, pdfW, pdfH);
-                        } else {
-                            const ratio = Math.min(pdfW / imgW, pdfH / imgH);
-                            const drawW = imgW * ratio;
-                            const drawH = imgH * ratio;
-                            doc.addImage(item.data, 'PNG', (pdfW - drawW) / 2, (pdfH - drawH) / 2, drawW, drawH);
-                        }
+                        
+                        doc.addImage(item.data, 'PNG', 0, 0, pdfW, pdfH);
                     } else {
-                        // PDF 類型處理
-                        const sourcePdfData = await pdfjsLib.getDocument({ data: item.data.slice(0) }).promise;
-                        for (let p = 1; p <= sourcePdfData.numPages; p++) {
-                            const page = await sourcePdfData.getPage(p);
-                            const viewportRender = page.getViewport({ scale: 2.0 });
-                            const canvas = document.createElement('canvas');
+                        const source = await pdfjsLib.getDocument({ data: item.data.slice(0) }).promise;
+                        for (let p = 1; p <= source.numPages; p++) {
+                            const page = await source.getPage(p);
+                            const vpR = page.getViewport({ scale: targetScale });
+                            const vpO = page.getViewport({ scale: 1.0 }); 
+                            const canvas = document.createElement('canvas'); canvas.width = vpR.width; canvas.height = vpR.height;
                             const context = canvas.getContext('2d');
-                            canvas.width = viewportRender.width; 
-                            canvas.height = viewportRender.height;
-                            await page.render({ canvasContext: context, viewport: viewportRender }).promise;
+                            await page.render({ canvasContext: context, viewport: vpR }).promise;
+                            const imgD = canvas.toDataURL('image/jpeg', 0.92);
                             
-                            const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                            const origViewport = page.getViewport({ scale: 1.0 });
                             let pdfW, pdfH, orient;
-
-                            if (sizeMode === 'original') {
-                                pdfW = origViewport.width; pdfH = origViewport.height;
-                                orient = pdfW > pdfH ? 'l' : 'p';
-                            } else {
-                                const tempDoc = new jsPDF({ unit: 'pt', format: sizeMode, orientation: orientationSetting });
-                                pdfW = tempDoc.internal.pageSize.getWidth();
-                                pdfH = tempDoc.internal.pageSize.getHeight();
-                                orient = orientationSetting;
+                            if (sizeMode === 'original') { 
+                                pdfW = vpO.width; pdfH = vpO.height; 
+                                orient = pdfW > pdfH ? 'l' : 'p'; 
+                            } else { 
+                                const temp = new jsPDF({ unit: 'pt', format: sizeMode }); 
+                                pdfW = temp.internal.pageSize.getWidth(); 
+                                pdfH = temp.internal.pageSize.getHeight(); 
+                                orient = pdfW > pdfH ? 'l' : 'p'; 
                             }
-
-                            if (isFirst) {
-                                doc = new jsPDF({ unit: 'pt', format: sizeMode === 'original' ? [pdfW, pdfH] : sizeMode, orientation: orient });
-                                isFirst = false;
-                            } else {
-                                doc.addPage(sizeMode === 'original' ? [pdfW, pdfH] : sizeMode, orient);
+                            
+                            if (isFirst) { 
+                                doc = new jsPDF({ unit: 'pt', format: [pdfW, pdfH], orientation: orient }); 
+                                isFirst = false; 
+                            } else { 
+                                doc.addPage([pdfW, pdfH], orient); 
                             }
-
-                            if (sizeMode === 'original') {
-                                doc.addImage(imgData, 'JPEG', 0, 0, pdfW, pdfH);
-                            } else {
-                                const ratio = Math.min(pdfW / origViewport.width, pdfH / origViewport.height);
-                                const drawW = origViewport.width * ratio;
-                                const drawH = origViewport.height * ratio;
-                                doc.addImage(imgData, 'JPEG', (pdfW - drawW) / 2, (pdfH - drawH) / 2, drawW, drawH);
-                            }
+                            
+                            doc.addImage(imgD, 'JPEG', 0, 0, pdfW, pdfH);
                         }
                     }
                 }
-
-                doc.setProperties({
-                    title: document.getElementById('pdfTitle').value || "",
-                    author: document.getElementById('pdfAuthor').value || "",
-                    subject: document.getElementById('pdfSubject').value || "",
-                    keywords: document.getElementById('pdfKeywords').value || ""
+                doc.setProperties({ 
+                    title: document.getElementById('pdfTitle').value || "", 
+                    author: document.getElementById('pdfAuthor').value || "", 
+                    subject: document.getElementById('pdfSubject').value || "", 
+                    keywords: document.getElementById('pdfKeywords').value || "" 
                 });
-
-                doc.save('result_document.pdf');
-                showStatus('成功產出並下載 PDF！');
+                doc.save('converted_document.pdf');
+                showStatus('成功產出 PDF！');
             } catch (err) { 
-                console.error(err);
-                showStatus('合成失敗：' + err.message, 'error'); 
+                console.error(err); 
+                showStatus('合成失敗', 'error'); 
             } finally { 
                 showLoading(false); 
             }
         }
 
-        // 拖放檔案上傳
-        ['pdfToImg', 'imgToPdf'].forEach(id => {
-            const zone = document.getElementById(`drop-${id}`);
-            zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
-            zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
-            zone.addEventListener('drop', (e) => {
-                e.preventDefault(); zone.classList.remove('dragover');
-                if (e.dataTransfer.files.length) {
-                    const inp = document.getElementById(`input-${id}`);
-                    inp.files = e.dataTransfer.files;
-                    inp.dispatchEvent(new Event('change'));
+        // --- PDF 平面化功能 ---
+        document.getElementById('input-pdfFlatten').addEventListener('change', async (e) => {
+            const file = e.target.files[0]; if (!file) return;
+            showLoading(true, '執行平面化作業...');
+            const quality = parseFloat(document.getElementById('compressQuality').value);
+            const scale = parseFloat(document.getElementById('compressScale').value);
+            try {
+                const buffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: buffer.slice(0) }).promise;
+                const jsPDFObj = window.jspdf.jsPDF;
+                let doc = null;
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    showLoading(true, `渲染中: ${i} / ${pdf.numPages}`);
+                    const page = await pdf.getPage(i);
+                    const vpR = page.getViewport({ scale: scale });
+                    const vpO = page.getViewport({ scale: 1.0 });
+                    const canvas = document.createElement('canvas'); canvas.width = vpR.width; canvas.height = vpR.height;
+                    const context = canvas.getContext('2d');
+                    await page.render({ canvasContext: context, viewport: vpR }).promise;
+                    const img = canvas.toDataURL('image/jpeg', quality);
+                    const pdfW = vpO.width; const pdfH = vpO.height;
+                    
+                    if (i === 1) {
+                        doc = new jsPDFObj({ unit: 'pt', format: [pdfW, pdfH] });
+                    } else {
+                        doc.addPage([pdfW, pdfH], pdfW > pdfH ? 'l' : 'p');
+                    }
+                    doc.addImage(img, 'JPEG', 0, 0, pdfW, pdfH);
                 }
+                doc.setProperties({ 
+                    title: document.getElementById('flatTitle').value || "", 
+                    author: document.getElementById('flatAuthor').value || "", 
+                    subject: document.getElementById('flatSubject').value || "", 
+                    keywords: document.getElementById('flatKeywords').value || "" 
+                });
+                compressedBlob = doc.output('blob');
+                document.getElementById('compressStats').innerHTML = `處理完成！原始大小：<strong>${(file.size/1024/1024).toFixed(2)} MB</strong><br>處理後大小：<strong>${(compressedBlob.size/1024/1024).toFixed(2)} MB</strong>`;
+                document.getElementById('compressResult').classList.remove('hidden');
+            } catch (err) { 
+                console.error(err);
+                showStatus('平面化失敗', 'error'); 
+            } finally { 
+                showLoading(false); 
+                e.target.value = ''; 
+            }
+        });
+
+        document.getElementById('btnDownloadCompressed').onclick = () => { 
+            if (compressedBlob) { 
+                const a = document.createElement('a'); 
+                a.href = URL.createObjectURL(compressedBlob); 
+                a.download = 'flattened_document.pdf'; 
+                a.click(); 
+            } 
+        };
+
+        // 拖放檔案上傳
+        ['pdfToImg', 'imgToPdf', 'pdfFlatten'].forEach(id => {
+            const z = document.getElementById(`drop-${id}`);
+            z.addEventListener('dragover', (e) => { e.preventDefault(); z.classList.add('dragover'); });
+            z.addEventListener('dragleave', () => z.classList.remove('dragover'));
+            z.addEventListener('drop', (e) => { 
+                e.preventDefault(); 
+                z.classList.remove('dragover'); 
+                if (e.dataTransfer.files.length) { 
+                    const inp = document.getElementById(`input-${id}`); 
+                    inp.files = e.dataTransfer.files; 
+                    inp.dispatchEvent(new Event('change')); 
+                } 
             });
         });
     </script>
